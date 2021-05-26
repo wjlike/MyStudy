@@ -5,6 +5,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>flink</module>
+        <module>OCR</module>
     </modules>
     <parent>
 		<groupId>org.springframework.boot</groupId>

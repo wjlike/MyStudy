@@ -18,7 +18,39 @@ nc -lk  7777  #启动发送socket 文本流服务器  nc linux自带的一个命
 
 ​	1、修改 flink/conf/flink-conf.yaml 文件
 
+      ```properties
+jobmamanger.rpc.address:hadoop1
+      ```
 
+2、修改/conf/slaves 文件：
+
+```properties
+hadoop2
+hadoop3
+```
+
+3、分发给另外两台机子
+
+```shell
+[xxxx@xx conf]$ xsync flink-1.10.0
+```
+
+4、启动
+
+```shell
+[xxxx@xx bin]$ ./start-cluster.sh
+```
+
+
+
+
+
+```properties
+taskmanager.numberOfTaskSlots:1 #并行最大的能力,针对几个task而言 slots：插槽
+
+parallelism.default: 1  # env中的配置， 代码中写了 这里就不写了
+
+```
 
 
 
