@@ -5,7 +5,10 @@
     <packaging>pom</packaging>
     <modules>
         <module>flink</module>
-        <module>OCR</module>
+		<module>testCode</module>
+        <module>mq</module>
+        <module>io</module>
+        <!--        <module>OCR</module>-->
     </modules>
     <parent>
 		<groupId>org.springframework.boot</groupId>
@@ -22,20 +25,10 @@
 		<java.version>1.8</java.version>
         <flink.version>1.10.1</flink.version>
 		<micrometer.version>1.7.0</micrometer.version>
+		<spring.version>2.2.2.RELEASE</spring.version>
 	</properties>
 
 	<dependencies>
-<!--		<dependency>-->
-<!--			<groupId>org.springframework.boot</groupId>-->
-<!--			<artifactId>spring-boot-starter</artifactId>-->
-<!--		</dependency>-->
-
-<!--		<dependency>-->
-<!--			<groupId>org.springframework.boot</groupId>-->
-<!--			<artifactId>spring-boot-starter-test</artifactId>-->
-<!--			<scope>test</scope>-->
-<!--		</dependency>-->
-
 
 	</dependencies>
 
@@ -75,6 +68,11 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>2.2.2.RELEASE</version>
+				<configuration>
+					<fork>true</fork>
+					<addResources>true</addResources>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
