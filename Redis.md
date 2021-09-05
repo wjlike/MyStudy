@@ -84,7 +84,7 @@ uint8_t len;//表示当前sds的长度(单位是字节)`` uint8_t alloc; //表�
 
  sdshdr8的内存布局 
 
-![1630741407364](img\1630741407364.png)
+![1630741407364](img/1630741407364.png)
 
 #####  列表类型 list
 
@@ -92,7 +92,7 @@ uint8_t len;//表示当前sds的长度(单位是字节)`` uint8_t alloc; //表�
 
  列表类型内部使用双向链表实现，所以向列表两端添加元素的时间复杂度为O(1), 获取越接近两端的元素速度就越 快。这意味着即使是一个有几千万个元素的列表，获取头部或尾部的10条记录也是很快的 
 
-![1630757295402](img\1630757295402.png)
+![1630757295402](img/1630757295402.png)
 
 ######  内部数据结构 
 
@@ -104,11 +104,11 @@ uint8_t len;//表示当前sds的长度(单位是字节)`` uint8_t alloc; //表�
 
  quicklist仍然是一个双向链表，只是列表的每个节点都是一个ziplist，其实就是linkedlist和ziplist的结合，quicklist 中每个节点ziplist都能够存储多个数据元素，在源码中的文件为【quicklist.c】，在源码第一行中有解释为：A doubly linked list of ziplists意思为一个由ziplist组成的双向链表 
 
-![1630757602496](img\1630757602496.png)
+![1630757602496](img/1630757602496.png)
 
 #####  hash类型 
 
-![1630757920823](img\1630757920823.png)
+![1630757920823](img/1630757920823.png)
 
 ######  数据结构 
 
@@ -168,7 +168,7 @@ typedef struct dict {
 
  集合类型的常用操作是向集合中加入或删除元素、判断某个元素是否存在。由于集合类型在redis内部是使用的值 为空的散列表(hash table)，所以这些操作的时间复杂度都是O(1) 
 
-![1630759687721](img\1630759687721.png)
+![1630759687721](img/1630759687721.png)
 
 ######  数据结构 
 
@@ -176,7 +176,7 @@ typedef struct dict {
 
 #####  有序集合 
 
-![1630760116075](img\1630760116075.png)
+![1630760116075](img/1630760116075.png)
 
  有序集合类型，顾名思义，和前面讲的集合类型的区别就是多了有序的功能  
 
@@ -184,7 +184,7 @@ typedef struct dict {
 
 ######  数据结构 
 
- zset类型的数据结构就比较复杂一点，内部是以ziplist或者skiplist+hashtable来实现，这里面最核心的一个结构就 是skiplist，也就是跳跃表 ![1630760205690](img\1630760205690.png)
+ zset类型的数据结构就比较复杂一点，内部是以ziplist或者skiplist+hashtable来实现，这里面最核心的一个结构就 是skiplist，也就是跳跃表 ![1630760205690](img/1630760205690.png)
 
 ##  Redis的原理分析
 
@@ -264,7 +264,7 @@ typedef struct dict {
 
  channel分两类，一个是普通channel、另一个是pattern channel（规则匹配）， producer1发布了一条消息 【publish abc hello】,redis server发给abc这个普通channel上的所有订阅者，同时abc也匹配上了pattern channel的名字，所以这条消息也会同时发送给pattern channel *bc上的所有订阅 
 
-![1630770268286](img\1630770268286.png)
+![1630770268286](img/1630770268286.png)
 
 ###  Redis的数据是如何持久化的？ 
 
@@ -505,7 +505,7 @@ Lua是一个高效的轻量级脚本语言(javascript、shell、sql、python、r
 
 主从复制就是我们常见的master/slave模式， 主数据库可以进行读写操作，当写操作导致数据发生变化时会自动将 数据同步给从数据库。而一般情况下，从数据库是只读的，并接收主数据库同步过来的数据。 一个主数据库可以有 多个从数据库 
 
-![1630840344862](img\1630840344862.png)
+![1630840344862](img/1630840344862.png)
 
 
 
@@ -517,11 +517,11 @@ Lua是一个高效的轻量级脚本语言(javascript、shell、sql、python、r
 
 ```txt
 准备两台服务器，分别安装redis ， server1 server2
-\1. 在server2的redis.conf文件中增加 slaveof server1-ip 6379 、 同时将bindip注释掉，允许所
+/1. 在server2的redis.conf文件中增加 slaveof server1-ip 6379 、 同时将bindip注释掉，允许所
 有ip访问
-\2. 启动server2
-\3. 访问server2的redis客户端，输入 INFO replication
-\4. 通过在master机器上输入命令，比如set foo bar 、 在slave服务器就能看到该值已经同步过来了
+/2. 启动server2
+/3. 访问server2的redis客户端，输入 INFO replication
+/4. 通过在master机器上输入命令，比如set foo bar 、 在slave服务器就能看到该值已经同步过来了
 
 ```
 
@@ -531,7 +531,7 @@ Lua是一个高效的轻量级脚本语言(javascript、shell、sql、python、r
 
  Redis全量复制一般发生在Slave初始化阶段，这时Slave需要将Master上的所有数据都复制一份。具体步骤 
 
-![1630842531071](img\1630842531071.png)
+![1630842531071](img/1630842531071.png)
 
  完成上面几个步骤后就完成了slave服务器数据初始化的所有操作，savle服务器此时可以接收来自用户的读请求。 
 
@@ -580,11 +580,11 @@ Lua是一个高效的轻量级脚本语言(javascript、shell、sql、python、r
 
  哨兵是一个独立的进程，使用哨兵后的架构图  
 
-![1630858287392](img\1630858287392.png)
+![1630858287392](img/1630858287392.png)
 
  为了解决master选举问题，又引出了一个单点问题，也就是哨兵的可用性如何解决，在一个一主多从的Redis系统 中，可以使用多个哨兵进行监控任务以保证系统足够稳定。此时哨兵不仅会监控master和slave，同时还会互相监 控；这种方式称为哨兵集群，哨兵集群需要解决故障发现、和master决策的协商机制问题 
 
-![1630858393677](img\1630858393677.png)
+![1630858393677](img/1630858393677.png)
 
 
 
@@ -598,41 +598,154 @@ Lua是一个高效的轻量级脚本语言(javascript、shell、sql、python、r
 
 
 
-![1630858547360](img\1630858547360.png)
+![1630858547360](img/1630858547360.png)
 
 ####  master的故障发现 
 
  sentinel节点会定期向master节点发送心跳包来判断存活状态，一旦master节点没有正确响应，sentinel会把 master设置为“**主观不可用状态**”，然后它会把“主观不可用”发送给其他所有的sentinel节点去确认，当确认的 sentinel节点数大于>quorum时，则会认为master是“**客观不可用**”，接着就开始进入选举新的master流程；但是 这里又会遇到一个问题，就是sentinel中，本身是一个集群，如果多个节点同时发现master节点达到客观不可用状 态，那谁来决策选择哪个节点作为maste呢？这个时候就需要从sentinel集群中选择一个leader来做决策。而这里 用到了一致性算法Raft算法、它和Paxos算法类似，都是分布式一致性算法。但是它比Paxos算法要更容易理解； Raft和Paxos算法一样，也是基于投票算法，只要保证过半数节点通过提议即可; 
 
+ 动画演示地址：http://thesecretlivesofdata.com/raft/ 
 
+####  配置实现 
 
+ 通过在这个配置的基础上增加哨兵机制。在其中任意一台服务器上创建一个sentinel.conf文件，文件内容 
 
+` sentinel monitor name ip port quorum `
 
+ 其中name表示要监控的master的名字，这个名字是自己定义。 ip和port表示master的ip和端口号。 最后一个1表示最低 通过票数，也就是说至少需要几个哨兵节点统一才可以，后面会具体讲解  
 
+```sh
+port 6040
+sentinel monitor mymaster 192.168.11.131 6379 1
+sentinel down-after-milliseconds mymaster 5000 ##表示如果5s内mymaster没响应，就认为SDOWN
+sentinel failover-timeout mymaster 15000 ##表示如果15秒后,mysater仍没活过来，则启动failover，从剩下的slave中选一个升级为master
 
+## 两种方式启动哨兵
+redis-sentinel sentinel.conf
+redis-server /path/to/sentinel.conf --sentinel
 
+```
 
+ 哨兵监控一个系统时，只需要配置监控master即可，哨兵会自动发现所有slave； 
 
+ 这时候，我们把master关闭，等待指定时间后（默认是30秒），会自动进行切换，会输出如下消息 
 
+ img 
 
+ **+sdown**表示哨兵主管认为master已经停止服务了，**+odown**表示哨兵客观认为master停止服务了。关于主观和客 观，后面会给大家讲解。接着哨兵开始进行故障恢复，挑选一个slave升级为master 
 
+ **+try-failover**表示哨兵开始进行故障恢复 
 
+ **+failover-end** 表示哨兵完成故障恢复 
 
+ **+slave**表示列出新的master和slave服务器，我们仍然可以看到已经停掉的master，哨兵并没有清楚已停止的服务 的实例，这是因为已经停止的服务器有可能会在某个时间进行恢复，恢复以后会以slave角色加入到整个集群中 
 
+###  Redis-Cluster 
 
+ 即使是使用哨兵，此时的Redis集群的每个数据库依然存有集群中的所有数据，从而导致集群的总数据存储量受限 于可用存储内存最小的节点，形成了木桶效应。而因为Redis是基于内存存储的，所以这一个问题在redis中就显得 尤为突出了  
 
+ 在redis3.0之前，我们是通过在客户端去做的分片，通过hash环的方式对key进行分片存储。分片虽然能够解决各 个节点的存储压力，但是导致维护成本高、增加、移除节点比较繁琐。因此在redis3.0以后的版本最大的一个好处 就是支持集群功能，集群的特点在于拥有和单机实例一样的性能，同时在网络分区以后能够提供一定的可访问性以 及对主数据库故障恢复的支持 
 
+ 哨兵和集群是两个独立的功能，当不需要对数据进行分片使用哨兵就够了，如果要进行水平扩容，集群是一个比较 好的方式 
 
+####  拓扑结构  
+
+ 一个Redis Cluster由多个Redis节点构成。不同节点组服务的数据没有交集，也就是每个一节点组对应数据 sharding的一个分片。节点组内部分为主备两类节点，对应master和slave节点。两者数据准实时一致，通过异步 化的主备复制机制来保证。一个节点组有且只有一个master节点，同时可以有0到多个slave节点，在这个节点组中 只有master节点对用户提供些服务，读服务可以由master或者slave提供  
+
+ redis-cluster是基于gossip协议实现的无中心化节点的集群，因为去中心化的架构不存在统一的配置中心，各个节 点对整个集群状态的认知来自于节点之间的信息交互。在Redis Cluster，这个信息交互是通过Redis Cluster Bus来 完成的 
+
+####  Redis的数据分区 
+
+ 分布式数据库首要解决把整个数据集按照分区规则映射到多个节点的问题，即把数据集划分到多个节点上，每个节 点负责整个数据的一个子集, Redis Cluster采用哈希分区规则,采用虚拟槽分区。 
+
+ 虚拟槽分区巧妙地使用了哈希空间，使用分散度良好的哈希函数把所有的数据映射到一个固定范围内的整数集合， 整数定义为槽（slot）。比如Redis Cluster槽的范围是0 ～ 16383。槽是集群内数据管理和迁移的基本单位。采用 大范围的槽的主要目的是为了方便数据的拆分和集群的扩展，每个节点负责一定数量的槽。 
+
+ 计算公式：slot = CRC16(key)%16383。每一个节点负责维护一部分槽以及槽所映射的键值数据。  
+
+![1630860207503](img/1630860207503.png)
+
+####  HashTags 
+
+ 通过分片手段，可以将数据合理的划分到不同的节点上，这本来是一件好事。但是有的时候，我们希望对相关联的 业务以原子方式进行操作。举个简单的例子 
+
+ 我们在单节点上执行MSET , 它是一个原子性的操作，所有给定的key会在同一时间内被设置，不可能出现某些指定 的key被更新另一些指定的key没有改变的情况。但是在集群环境下，我们仍然可以执行MSET命令，但它的操作不 在是原子操作，会存在某些指定的key被更新，而另外一些指定的key没有改变，原因是多个key可能会被分配到不 同的机器上。  
+
+ 所以，这里就会存在一个矛盾点，及要求key尽可能的分散在不同机器，又要求某些相关联的key分配到相同机器。 这个也是在面试的时候会容易被问到的内容。怎么解决呢？  
+
+ 从前面的分析中我们了解到，分片其实就是一个hash的过程，对key做hash取模然后划分到不同的机器上。所以为 了解决这个问题，我们需要考虑如何让相关联的key得到的hash值都相同呢？如果key全部相同是不现实的，所以 怎么解决呢？在redis中引入了HashTag的概念，可以使得数据分布算法可以根据key的某一个部分进行计算，然后 让相关的key落到同一个数据分片 
+
+ 举个简单的例子，加入对于用户的信息进行存储， user:user1:id、user:user1:name/ 那么通过hashtag的方式， user:{user1}:id、user:{user1}.name; 表示  
+
+ 当一个key包含 {} 的时候，就不对整个key做hash，而仅对 {} 包括的字符串做hash。  
+
+####  重定向客户端 
+
+ Redis Cluster并不会代理查询，那么如果客户端访问了一个key并不存在的节点，这个节点是怎么处理的呢？比如 我想获取key为msg的值，msg计算出来的槽编号为254，当前节点正好不负责编号为254的槽，那么就会返回客户 端下面信息： 
+
+` -MOVED 254 127.0.0.1:6381 `
+
+ 表示客户端想要的254槽由运行在IP为127.0.0.1，端口为6381的Master实例服务。如果根据key计算得出的槽恰好 由当前节点负责，则当期节点会立即返回结果 
+
+####  分片迁移 
+
+ 在一个稳定的Redis cluster下，每一个slot对应的节点是确定的，但是在某些情况下，节点和分片对应的关系会发 生变更  
+
+1. 新加入master节点 
+2.  某个节点宕机 
+
+ 也就是说当动态添加或减少node节点时，需要将16384个槽做个再分配，槽中的键值也要迁移。当然，这一过程， 在目前实现中，还处于半自动状态，需要人工介入 
+
+#####  新增一个主节点 
+
+ 新增一个节点D，redis cluster的这种做法是从各个节点的前面各拿取一部分slot到D上。大致就会变成这样： 
+
+ 节点A覆盖1365-5460 
+
+ 节点B覆盖6827-10922  
+
+ 节点C覆盖12288-16383  
+
+ 节点D覆盖0-1364,5461-6826,10923-12287 
+
+#####  删除一个主节点 
+
+ 先将节点的数据移动到其他节点上，然后才能执行删除 
+
+![1630860993696](img/1630860993696.png)
+
+####  槽迁移的过程 
+
+ 槽迁移的过程中有一个不稳定状态，这个不稳定状态会有一些规则，这些规则定义客户端的行为，从而使得Redis Cluster不必宕机的情况下可以执行槽的迁移。下面这张图描述了我们迁移编号为1、2、3的槽的过程中，他们在 MasterA节点和MasterB节点中的状态 
+
+ 简单的工作流程 
+
+1. 向MasterB发送状态变更命令，吧Master B对应的slot状态设置为IMPORTING 
+2.  向MasterA发送状态变更命令，将Master对应的slot状态设置为MIGRATING 
+
+ 当MasterA的状态设置为MIGRANTING后，表示对应的slot正在迁移，为了保证slot数据的一致性，MasterA此时 对于slot内部数据提供读写服务的行为和通常状态下是有区别的 
+
+#####  MIGRATING状态  
+
+1. 如果客户端访问的Key还没有迁移出去，则正常处理这个key 
+2.  如果key已经迁移或者根本就不存在这个key，则回复客户端ASK信息让它跳转到MasterB去执行 
+
+#####  IMPORTING状态 
+
+ 当MasterB的状态设置为IMPORTING后，表示对应的slot正在向MasterB迁入，及时Master仍然能对外提供该slot 的读写服务，但和通常状态下也是有区别的  
+
+1. 当来自客户端的正常访问不是从ASK跳转过来的，说明客户端还不知道迁移正在进行，很有可能操作了一个目前 还没迁移完成的并且还存在于MasterA上的key，如果此时这个key在A上已经被修改了，那么B和A的修改则会发生 冲突。所以对于MasterB上的slot上的所有非ASK跳转过来的操作，MasterB都不会uu出去护理，而是通过MOVED 命令让客户端跳转到MasterA上去执行 
+
+   这样的状态控制保证了同一个key在迁移之前总是在源节点上执行，迁移后总是在目标节点上执行，防止出现两边 同时写导致的冲突问题。而且迁移过程中新增的key一定会在目标节点上执行，源节点也不会新增key，是的整个迁 移过程既能对外正常提供服务，又能在一定的时间点完成slot的迁移 
 
 
 
 ##  Redis Java客户端介绍 
 
-##  已有的客户端支持 
+###  已有的客户端支持 
 
  Redis Java客户端有很多的开源产品比如Redission、Jedis、lettuce  
 
-###  差异 
+####  差异 
 
  **Jedis**是Redis的Java实现的客户端，其API提供了比较全面的Redis命令的支持； 
 
@@ -640,13 +753,13 @@ Lua是一个高效的轻量级脚本语言(javascript、shell、sql、python、r
 
  **lettuce**是基于Netty构建的一个可伸缩的线程安全的Redis客户端，支持同步、异步、响应式模式。多个线程可以 共享一个连接实例，而不必担心多线程并发问题； 
 
-###  jedis-sentinel原理分析 
+####  jedis-sentinel原理分析 
 
-####  原理 
+#####  原理 
 
  客户端通过连接到哨兵集群，通过发送Protocol.SENTINEL_GET_MASTER_ADDR_BY_NAME 命令，从哨兵机器中 询问master节点的信息，拿到master节点的ip和端口号以后，再到客户端发起连接。连接以后，需要在客户端建 立监听机制，当master重新选举之后，客户端需要重新连接到新的master节点 
 
-####  源码分析 
+#####  源码分析 
 
 ```java
 private HostAndPort initSentinels(Set<String> sentinels, final String masterName) {
@@ -731,9 +844,9 @@ public List<String> sentinelGetMasterAddrByName(String masterName) {
 }
 ```
 
-###  Jedis-cluster原理分析 
+####  Jedis-cluster原理分析 
 
-####  连接方式 
+#####  连接方式 
 
 ```java
 Set<HostAndPort> hostAndPorts=new HashSet<>();
@@ -749,9 +862,9 @@ JedisCluster jedisCluster=new JedisCluster(hostAndPorts,6000);
 jedisCluster.set("mic","hello")
 ```
 
-####  原理分析 
+#####  原理分析 
 
-#####  程序启动初始化集群环境 
+######  程序启动初始化集群环境 
 
  1)、读取配置文件中的节点配置，无论是主从，无论多少个，只拿第一个，获取redis连接实例 
 
@@ -765,7 +878,7 @@ jedisCluster.set("mic","hello")
 
  就实现了slot槽索引值与jedisPool的映射，这个jedisPool包含了master的节点信息，所以槽和几点是对应的，与 redis服务端一致 
 
-#####  从集群环境存取值 
+######  从集群环境存取值 
 
  1)、把key作为参数，执行CRC16算法，获取key对应的slot值 
 
@@ -807,3 +920,312 @@ getList ->获取列表
  关于锁，其实我们或多或少都有接触过一些，比如synchronized、 Lock这些，这类锁的目的很简单，在多线程环 境下，对共享资源的访问造成的线程安全问题，通过锁的机制来实现资源访问互斥。那么什么是分布式锁呢？或者 为什么我们需要通过Redis来构建分布式锁，其实最根本原因就是Score（范围），因为在分布式架构中，所有的应 用都是进程隔离的，在多进程访问共享资源的时候我们需要满足互斥性，就需要设定一个所有进程都能看得到的范 围，而这个范围就是Redis本身。所以我们才需要把锁构建到Redis中。 Redis里面提供了一些比较具有能够实现锁特性的命令，比如SETEX(在键不存在的情况下为键设置值)，那么我们可 以基于这个命令来去实现一些简单的锁的操作 
 
 ###  分布式锁实战 
+
+```java
+package com.like.test.redis;
+
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.Transaction;
+
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * RedisLock 分布式锁
+ */
+public class RedisLock {
+
+
+    public String getLock(String key,int timeout){
+        try {
+            Jedis jedis=RedisManager.getJedis();
+            String value=UUID.randomUUID().toString(); //UUID
+            long end=System.currentTimeMillis()+timeout;
+            while(System.currentTimeMillis()<end) {//阻塞
+                if (jedis.setnx(key, value) == 1) {
+                    jedis.expire(key,timeout);
+                    //锁设置成功，redis操作成功
+                    return value;
+                }
+                if(jedis.ttl(key)==-1){ //检测过期时间
+                    jedis.expire(key,timeout);
+                }
+                Thread.sleep(1000);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public boolean releaseLock(String key,String value){
+        try {
+            Jedis jedis=RedisManager.getJedis();
+            while(true) {
+                jedis.watch(key);  //watch
+                if (value.equals(jedis.get(key))) { //判断获得锁的线程和当前redis中存的锁是同一个
+                    Transaction transaction = jedis.multi();
+                    transaction.del(key);
+                    List<Object> list = transaction.exec();
+                    if (list == null) {
+                        continue;
+                    }
+                    return true;
+                }
+                jedis.unwatch();
+                break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public static void main(String[] args) {
+        RedisLock redisLock=new RedisLock();
+        String lockId=redisLock.getLock("lock:aaa",10000);
+        if(null!=lockId){
+            System.out.println("获得锁成功");
+        }
+     //   System.out.println("失败");
+
+        String l=redisLock.getLock("lock:aaa",10000);
+        System.out.println(l);
+    }
+}
+
+```
+
+###  Redisson实现分布式锁  
+
+ Redisson它除了常规的操作命令以外，还基于redis本身的特性去实现了很多功能的封装，比如分布式锁、原子操 作、布隆过滤器、队列等等。我们可以直接利用这个api提供的功能去实现 
+
+```java
+Config config=new Config();
+config.useSingleServer().setAddress("redis://192.168.11.152:6379");
+RedissonClient redissonClient=Redisson.create(config);
+RLock rLock=redissonClient.getLock("updateOrder");
+//最多等待100秒、上锁10s以后自动解锁
+if(rLock.tryLock(100,10,TimeUnit.SECONDS)){
+System.out.println("获取锁成功");
+}
+
+```
+
+####  原理分析 
+
+#####  trylock 
+
+```java
+  public boolean tryLock(long waitTime, long leaseTime, TimeUnit unit) throws InterruptedException {
+        long time = unit.toMillis(waitTime);
+        long current = System.currentTimeMillis();
+        long threadId = Thread.currentThread().getId();
+        Long ttl = this.tryAcquire(waitTime, leaseTime, unit, threadId);//申请锁，返回还剩余的锁的过期时间
+        if (ttl == null) {//表示申请锁成功
+            return true;
+        } else {
+            time -= System.currentTimeMillis() - current;
+            if (time <= 0L) {
+                this.acquireFailed(waitTime, unit, threadId);
+                return false;
+            }
+```
+
+#####   tryAcquire  
+
+```java
+ private <T> RFuture<Long> tryAcquireAsync(long waitTime, long leaseTime, TimeUnit unit, long threadId) {
+        if (leaseTime != -1) {
+            return tryLockInnerAsync(waitTime, leaseTime, unit, threadId, RedisCommands.EVAL_LONG);//针对leaseTime(过期时间)是否设置过来做不同的转发处理
+        }
+        RFuture<Long> ttlRemainingFuture = tryLockInnerAsync(waitTime,
+                                                commandExecutor.getConnectionManager().getCfg().getLockWatchdogTimeout(),
+                                                TimeUnit.MILLISECONDS, threadId, RedisCommands.EVAL_LONG);
+        ttlRemainingFuture.onComplete((ttlRemaining, e) -> {
+            if (e != null) {
+                return;
+            }
+
+            // lock acquired
+            if (ttlRemaining == null) {
+                scheduleExpirationRenewal(threadId);
+            }
+        });
+        return ttlRemainingFuture;
+    }
+```
+
+#####  tryLockInnerAsync 
+
+```java
+ <T> RFuture<T> tryLockInnerAsync(long waitTime, long leaseTime, TimeUnit unit, long threadId, RedisStrictCommand<T> command) {
+        internalLockLeaseTime = unit.toMillis(leaseTime);
+
+        return evalWriteAsync(getName(), LongCodec.INSTANCE, command,
+                "if (redis.call('exists', KEYS[1]) == 0) then " +
+                        "redis.call('hincrby', KEYS[1], ARGV[2], 1); " +
+                        "redis.call('pexpire', KEYS[1], ARGV[1]); " +
+                        "return nil; " +
+                        "end; " +
+                        "if (redis.call('hexists', KEYS[1], ARGV[2]) == 1) then " +
+                        "redis.call('hincrby', KEYS[1], ARGV[2], 1); " +
+                        "redis.call('pexpire', KEYS[1], ARGV[1]); " +
+                        "return nil; " +
+                        "end; " +
+                        "return redis.call('pttl', KEYS[1]);",
+                Collections.singletonList(getName()), internalLockLeaseTime, getLockName(threadId));
+    }
+```
+
+ 通过lua脚本来实现加锁的操作 
+
+1. 判断lock键是否存在，不存在直接调用hset存储当前线程信息并且设置过期时间,返回nil，告诉客户端直接获取 到锁。 
+2.   判断lock键是否存在，存在则将重入次数加1，并重新设置过期时间，返回nil，告诉客户端直接获取到锁。 
+3.   被其它线程已经锁定，返回锁有效期的剩余时间，告诉客户端需要等待。 
+
+#####  unlock 
+
+```java
+ protected RFuture<Boolean> unlockInnerAsync(long threadId) {
+        return evalWriteAsync(getName(), LongCodec.INSTANCE, RedisCommands.EVAL_BOOLEAN,
+                "if (redis.call('hexists', KEYS[1], ARGV[3]) == 0) then " +
+                        "return nil;" +
+                        "end; " +
+                        "local counter = redis.call('hincrby', KEYS[1], ARGV[3], -1); " +
+                        "if (counter > 0) then " +
+                        "redis.call('pexpire', KEYS[1], ARGV[2]); " +
+                        "return 0; " +
+                        "else " +
+                        "redis.call('del', KEYS[1]); " +
+                        "redis.call('publish', KEYS[2], ARGV[1]); " +
+                        "return 1; " +
+                        "end; " +
+                        "return nil;",
+                Arrays.asList(getName(), getChannelName()), LockPubSub.UNLOCK_MESSAGE, internalLockLeaseTime, getLockName(threadId));
+    }
+```
+
+1. 如果lock键不存在，发消息说锁已经可用，发送一个消息 
+2.  如果锁不是被当前线程锁定，则返回nil 
+3.  由于支持可重入，在解锁时将重入次数需要减1 
+4.  如果计算后的重入次数>0，则重新设置过期时间  
+5.  如果计算后的重入次数<=0，则发消息说锁已经可用 
+
+###  管道模式 
+
+ Redis服务是一种C/S模型，提供请求－响应式协议的TCP服务，所以当客户端发起请求，服务端处理并返回结果到 客户端，一般是以阻塞形式等待服务端的响应，但这在批量处理连接时延迟问题比较严重，所以Redis为了提升或 弥补这个问题，引入了管道技术：可以做到服务端未及时响应的时候，客户端也可以继续发送命令请求，做到客户 端和服务端互不影响，服务端并最终返回所有服务端的响应，大大提高了C/S模型交互的响应速度上有了质的提高 
+
+####  使用方法  
+
+```java
+Jedis jedis=new Jedis("192.168.11.152",6379);
+Pipeline pipeline=jedis.pipelined();
+for(int i=0;i<1000;i++){
+pipeline.incr("test");
+}
+pipeline.sync();
+```
+
+##  Redis的应用架构 
+
+ 对于读多写少的高并发场景，我们会经常使用缓存来进行优化。比如说支付宝的余额展示功能，实际上99%的时候 都是查询，1%的请求是变更（除非是土豪，每秒钟都有收入在不断更改余额），所以，我们在这样的场景下，可 以加入缓存，用户->余额 
+
+![1630863848493](img/1630863848493.png)
+
+####  Redis缓存与数据一致性问题 
+
+ 那么基于上面的这个出发点，问题就来了，当用户的余额发生变化的时候，如何更新缓存中的数据，也就是说。 
+
+1. 我是先更新缓存中的数据再更新数据库的数据； 
+2.  还是修改数据库中的数据再更新缓存中的数据 
+
+ 这就是我们经常会在面试遇到的问题，数据库的数据和缓存中的数据如何达到一致性？首先，可以肯定的是， redis中的数据和数据库中的数据不可能保证事务性达到统一的，这个是毫无疑问的，所以在实际应用中，我们都 是基于当前的场景进行权衡降低出现不一致问题的出现概率 
+
+#####  更新缓存还是让缓存失效 
+
+ 更新缓存表示数据不但会写入到数据库，还会同步更新缓存； 而让缓存失效是表示只更新数据库中的数据，然后删 除缓存中对应的key。那么这两种方式怎么去选择？这块有一个衡量的指标。 
+
+1. 如果更新缓存的代价很小，那么可以先更新缓存，这个代价很小的意思是我不需要很复杂的计算去获得最新的 余额数字。 
+2.  如果是更新缓存的代价很大，意味着需要通过多个接口调用和数据查询才能获得最新的结果，那么可以先淘汰 缓存。淘汰缓存以后后续的请求如果在缓存中找不到，自然去数据库中检索。  
+
+#####  先操作数据库还是先操作缓存？  
+
+ 当客户端发起事务类型请求时，假设我们以让缓存失效作为缓存的的处理方式，那么又会存在两个情况， 
+
+1. 先更新数据库再让缓存失效 
+2. 先让缓存失效，再更新数据库  
+
+ 更新数据库和更新缓存这两个操作，是无法保证原子性的，所以我们需要根据当前业务的场景的容 忍性来选择。也就是如果出现不一致的情况下，哪一种更新方式对业务的影响最小，就先执行影响最小的方案 
+
+#####  最终一致性的解决方案 
+
+![1630864166990](img/1630864166990.png)
+
+####  关于缓存雪崩的解决方案 
+
+ 当缓存大规模渗透在整个架构中以后，那么缓存本身的可用性讲决定整个架构的稳定性。那么接下来我们来讨论下 缓存在应用过程中可能会导致的问题。 
+
+#####  缓存雪崩 
+
+ 缓存雪崩是指设置缓存时采用了相同的过期时间，导致缓存在某一个时刻同时失效，或者缓存服务器宕机宕机导致 缓存全面失效，请求全部转发到了DB层面，DB由于瞬间压力增大而导致崩溃。缓存失效导致的雪崩效应对底层系 统的冲击是很大的。 
+
+######  解决方式  
+
+1. 对缓存的访问，如果发现从缓存中取不到值，那么通过加锁或者队列的方式保证缓存的单进程操作，从而避免 失效时并发请求全部落到底层的存储系统上；但是这种方式会带来性能上的损耗 
+2.  将缓存失效的时间分散，降低每一个缓存过期时间的重复率 
+3.  如果是因为缓存服务器故障导致的问题，一方面需要保证缓存服务器的高可用、另一方面，应用程序中可以采 用多级缓存 
+
+#####  缓存穿透 
+
+ 缓存穿透是指查询一个根本不存在的数据，缓存和数据源都不会命中。出于容错的考虑，如果从数据层查不到数据 则不写入缓存，即数据源返回值为 null 时，不缓存 null。缓存穿透问题可能会使后端数据源负载加大，由于很多后 端数据源不具备高并发性，甚至可能造成后端数据源宕掉  
+
+######  解决方式  
+
+1. 如果查询数据库也为空，直接设置一个默认值存放到缓存，这样第二次到缓冲中获取就有值了，而不会继续访 问数据库，这种办法最简单粗暴。比如，”key” , “&&”。
+
+   在返回这个&&值的时候，我们的应用就可以认为这是不存在的key，那我们的应用就可以决定是否继续等待继续访 问，还是放弃掉这次操作。如果继续等待访问，过一个时间轮询点后，再次请求这个key，如果取到的值不再是 &&，则可以认为这时候key有值了，从而避免了透传到数据库，从而把大量的类似请求挡在了缓存之中。
+
+2. 根据缓存数据Key的设计规则，将不符合规则的key进行过滤 
+
+   采用布隆过滤器，将所有可能存在的数据哈希到一个足够大的BitSet中，不存在的数据将会被拦截掉，从而避免了 对底层存储系统的查询压力 
+
+##### 缓存击穿
+
+系统中存在以下两个问题时需要引起注意：
+
+- 当前key是一个热点key（例如一个秒杀活动），并发量非常大。
+- 重建缓存不能在短时间完成，可能是一个复杂计算，例如复杂的SQL、多次IO、多个依赖等。
+
+ 在缓存失效的瞬间，有大量线程来重建缓存，造成后端负载加大，甚至可能会让应用崩溃。
+
+###### 解决方式  
+
+**1. 分布式互斥锁**
+
+   只允许一个线程重建缓存，其他线程等待重建缓存的线程执行完，重新从缓存获取数据即可。set(key,value,timeout)
+
+**2. 永不过期**
+
+- 从缓存层面来看，确实没有设置过期时间，所以不会出现热点key过期后产生的问题，也就是“物理”不过期。
+- 从功能层面来看，为每个value设置一个逻辑过期时间，当发现超过逻辑过期时间后，会使用单独的线程去更新缓
+
+####  布隆过滤器 
+
+ 布隆过滤器是Burton Howard Bloom在1970年提出来的，一种空间效率极高的概率型算法和数据结构，主要用来 判断一个元素是否在集合中存在。因为他是一个概率型的算法，所以会存在一定的误差，如果传入一个值去布隆过 滤器中检索，可能会出现检测存在的结果但是实际上可能是不存在的，但是肯定不会出现实际上不存在然后反馈存 在的结果。因此，Bloom Filter不适合那些“零错误”的应用场合。而在能容忍低错误率的应用场合下，Bloom Filter 通过极少的错误换取了存储空间的极大节省。 
+
+#####  bitmap 
+
+ 所谓的Bit-map就是用一个bit位来标记某个元素对应的Value，通过Bit为单位来存储数据，可以大大节省存储空间. 所以我们可以通过一个int型的整数的32比特位来存储32个10进制的数字，那么这样所带来的好处是内存占用少、 效率很高（不需要比较和位移）比如我们要存储5(101)、3(11)四个数字，那么我们申请int型的内存空间，会有32 个比特位。这四个数字的二进制分别对应 
+
+ 从右往左开始数，比如第一个数字是5，对应的二进制数据是101, 那么从右往左数到第5位，把对应的二进制数据 存储到32个比特位上。 
+
+ 第一个5就是 00000000000000000000000000101000 
+
+ 输入3时候 00000000000000000000000000001100 
+
+#####  布隆过滤器原理 
+
+ 有了对位图的理解以后，我们对布隆过滤器的原理理解就会更容易了，仍然以前面提到的40亿数据为案例，假设这 40亿数据为某邮件服务器的黑名单数据，邮件服务需要根据邮箱地址来判断当前邮箱是否属于垃圾邮件。原理如下 
+
+ 假设集合里面有3个元素{x, y, z}，哈希函数的个数为3。首先将位数组进行初始化，将里面每个位都设置位0。对于 集合里面的每一个元素，将元素依次通过3个哈希函数进行映射，每次映射都会产生一个哈希值，这个值对应位数 组上面的一个点，然后将位数组对应的位置标记为1。查询W元素是否存在集合中的时候，同样的方法将W通过哈 希映射到位数组上的3个点。如果3个点的其中有一个点不为1，则可以判断该元素一定不存在集合中。反之，如果 3个点都为1，则该元素可能存在集合 

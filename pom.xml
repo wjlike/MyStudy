@@ -58,6 +58,17 @@
 				<artifactId>micrometer-registry-prometheus</artifactId>
 				<version>${micrometer.version}</version>
 			</dependency>
+
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-data-redis</artifactId>
+			</dependency>
+			<!-- https://mvnrepository.com/artifact/org.redisson/redisson -->
+			<dependency>
+				<groupId>org.redisson</groupId>
+				<artifactId>redisson</artifactId>
+				<version>3.7.4</version>
+			</dependency>
         </dependencies>
 
 
