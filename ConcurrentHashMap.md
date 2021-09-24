@@ -736,7 +736,7 @@ private final void tryPresize(int size) {
 
 此方法支持多线程执行，外围调用此方法的时候，会保证第一个发起数据迁移的线程，nextTab 参数为 null，之后再调用此方法的时候，nextTab 不会为 null。
 
-阅读源码之前，先要理解并发操作的机制。原数组长度为 n，所以我们有 n 个迁移任务，让每个线程每次负责一个小任务是最简单的，每做完一个任务再检测是否有其他没做完的任务，帮助迁移就可以了，而 Doug Lea 使用了一个 stride，简单理解就是步长，每个线程每次负责迁移其中的一部分，如每次迁移 16 个小任务。所以，我们就需要一个全局的调度者来安排哪个线程执行哪几个任务，这个就是属性 transferIndex 的作用。
+阅读源码之前，先要理解并发操作的机制。原数组长度为 n，所以我们有 n 个迁移任务，让每个线程每次负责一个小任务是最简单的，每做完一个任务再检测是否有其他没做完的任务，帮助迁移就可以了，而 Doug Lea 使用了一个 stride，简单理解就是步长，每个线程每次负责迁移其中的一部分，如每次迁移 16 个小任务。所以，我们就 
 
 第一个发起数据迁移的线程会将 transferIndex 指向原数组最后的位置，然后从后往前的 stride 个任务属于第一个线程，然后将 transferIndex 指向新的位置，再往前的 stride 个任务属于第二个线程，依此类推。当然，这里说的第二个线程不是真的一定指代了第二个线程，也可以是同一个线程，这个读者应该能理解吧。其实就是将一个大的迁移任务分为了一个个任务包。
 
@@ -747,7 +747,7 @@ private final void transfer(Node<K,V>[] tab, Node<K,V>[] nextTab) {
     // stride 在单核下直接等于 n，多核模式下为 (n>>>3)/NCPU，最小值是 16
     // stride 可以理解为”步长“，有 n 个位置是需要进行迁移的，
     //   将这 n 个任务分为多个任务包，每个任务包有 stride 个任务
-    if ((stride = (NCPU > 1) ? (n >>> 3) / NCPU : n) < MIN_TRANSFER_STRIDE)
+    if ((stride =   ? (n >>> 3) / NCPU : n) < MIN_TRANSFER_STRIDE)
         stride = MIN_TRANSFER_STRIDE; // subdivide range
  
     // 如果 nextTab 为 null，先进行一次初始化
@@ -756,7 +756,7 @@ private final void transfer(Node<K,V>[] tab, Node<K,V>[] nextTab) {
     if (nextTab == null) {
         try {
             // 容量翻倍
-            Node<K,V>[] nt = (Node<K,V>[])new Node<?,?>[n << 1];
+            Node<K,V>[] nt = (Node<K,V>[])new Node<?,?>[  << 1];
             nextTab = nt;
         } catch (Throwable ex) {      // try to cope with OOME
             sizeCtl = Integer.MAX_VALUE;

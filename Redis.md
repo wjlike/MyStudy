@@ -28,7 +28,7 @@
 
 6. make install {PREFIX=/path} 
 
-### 启动停止redis  
+## 启动停止redis  
 
  安装完redis后的下一步就是怎么去启动和访问，我们首先先了解一下Redis包含哪些可执行文件 
 
@@ -66,7 +66,7 @@
 
  字符串类型是redis中最基本的数据类型，它能存储任何形式的字符串，包括二进制数据。你可以用它存储用户的 邮箱、json化的对象甚至是图片。一个字符类型键允许存储的最大容量是512M  
 
-#####  内部数据结构  
+###### 内部数据结构  
 
  在Redis内部，String类型通过 int、SDS(simple dynamic string)作为结构存储，int用来存放整型数据，sds存放字 节/字符串和浮点型数据。在C的标准字符串结构下进行了封装，用来提升基本操作的性能，同时也充分利用已有的 C的标准库，简化实现逻辑。我们可以在redis的源码中【sds.h】中看到sds的结构如下； 
 
@@ -185,6 +185,17 @@ typedef struct dict {
 ######  数据结构 
 
  zset类型的数据结构就比较复杂一点，内部是以ziplist或者skiplist+hashtable来实现，这里面最核心的一个结构就 是skiplist，也就是跳跃表 ![1630760205690](img/1630760205690.png)
+
+
+
+## Redis 淘汰策略
+
+- noeviction: 不删除策略, 达到最大内存限制时, 如果需要更多内存, 直接返回错误信息。 大多数写命令都会导致占用更多的内存(有极少数会例外, 如 DEL )。
+- allkeys-lru: 所有key通用; 优先删除最近最少使用(less recently used ,LRU) 的 key。
+- volatile-lru: 只限于设置了 expire 的部分; 优先删除最近最少使用(less recently used ,LRU) 的 key。
+- allkeys-random: 所有key通用; 随机删除一部分 key。
+- volatile-random: 只限于设置了 expire 的部分; 随机删除一部分 key。
+- volatile-ttl: 只限于设置了 expire 的部分; 优先删除剩余时间(time to live,TTL) 短的key
 
 ##  Redis的原理分析
 

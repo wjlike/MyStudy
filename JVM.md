@@ -748,3 +748,36 @@ e. 不断的分析和调整，知道找到合适的jvm参数配置；
  f. 找到最合适的参数，将这些参数应⽤到所有服务器，并进⾏后续 跟踪。 
 
 12. 平时有没有看过什么源码，请画出来。 深⼊理解：https://juejin.im/post/5caef238e51d456e27504b83 13. 有没有写过或者看过custom classloader？ 了解⼀下即可：https://www.jianshu.com/p/3036b46f1188 
+
+#  垃圾收集器分类 
+
+## 串行收集器->Serial和Serial Old 
+
+ 只能有一个垃圾回收线程执行，用户线程暂停。 
+
+ 适用于内存比较小的嵌入式设备 。 
+
+## 并行收集器[吞吐量优先]->Parallel Scanvenge、Parallel Old 
+
+ 多条垃圾收集线程并行工作，但此时用户线程仍然处于等待状态。 
+
+ 适用于内存比较小的嵌入式设备 。 
+
+## 并发收集器[停顿时间优先]->CMS、G1 
+
+ 用户线程和垃圾收集线程同时执行(但并不一定是并行的，可能是交替执行的)，垃圾收集线程在执行的 时候不会停顿用户线程的运行。 
+
+ 适用于相对时间有要求的场景，比如Web 。 
+
+```sh
+（1）串行
+-XX：+UseSerialGC
+-XX：+UseSerialOldGC
+（2）并行(吞吐量优先)：
+-XX：+UseParallelGC
+-XX：+UseParallelOldGC
+（3）并发收集器(响应时间优先)
+-XX：+UseConcMarkSweepGC
+-XX：+UseG1GC
+```
+
