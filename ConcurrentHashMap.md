@@ -8,7 +8,7 @@ ConcurrentHashMap 和 HashMap 思路是差不多的，但是因为它支持并�
 
 简单理解就是，ConcurrentHashMap 是一个 Segment 数组，Segment 通过继承 ReentrantLock 来进行加锁，所以每次需要加锁的操作锁住的是一个 segment，这样只要保证每个 Segment 是线程安全的，也就实现了全局的线程安全。
 
-![](https://github.com/muyutingfeng/jdk1.8-source-analysis/raw/master/note/doc/java.util.concurrent.ConcurrentHashMap/Java7ConcurrentHashMap.png?raw=true)
+![](img/Java7ConcurrentHashMap.png)
 
 concurrencyLevel：并行级别、并发数、Segment 数，怎么翻译不重要，理解它。默认是 16，也就是说 ConcurrentHashMap 有 16 个 Segments，所以理论上，这个时候，最多可以同时支持 16 个线程并发写，只要它们的操作分别分布在不同的 Segment 上。这个值可以在初始化的时候设置为其他值，但是一旦初始化以后，它是不可以扩容的。
 
@@ -446,6 +446,13 @@ public V get(Object key) {
 
 ## Java8 ConcurrentHashMap
 
+- computeIfAbsent(计算如果值不存在的情况下)
+- computeIfPresent(计算如果值存在的情况下)
+- compute(computeIfAbsent，和computeIfPresent两者的结合)
+- Merge(合并数据)
+
+
+
 Java7 中实现的 ConcurrentHashMap 说实话还是比较复杂的，Java8 对 ConcurrentHashMap 进行了比较大的改动。建议读者可以参考 Java8 中 HashMap 相对于 Java7 HashMap 的改动，对于 ConcurrentHashMap，Java8 也引入了红黑树。
 
 说实话，Java8 ConcurrentHashMap 源码真心不简单，最难的在于扩容，数据迁移操作不容易看懂。
@@ -730,7 +737,7 @@ private final void tryPresize(int size) {
 
 ### 6、transfer数据迁移
 
-下面这个方法很点长，将原来的 tab 数组的元素迁移到新的 nextTab 数组中。
+将原来的 tab 数组的元素迁移到新的 nextTab 数组中。
 
 虽然我们之前说的 tryPresize 方法中多次调用 transfer 不涉及多线程，但是这个 transfer 方法可以在其他地方被调用，典型地，我们之前在说 put 方法的时候就说过了，请往上看 put 方法，是不是有个地方调用了 helpTransfer 方法，helpTransfer 方法会调用 transfer 方法的。
 
@@ -747,6 +754,7 @@ private final void transfer(Node<K,V>[] tab, Node<K,V>[] nextTab) {
     // stride 在单核下直接等于 n，多核模式下为 (n>>>3)/NCPU，最小值是 16
     // stride 可以理解为”步长“，有 n 个位置是需要进行迁移的，
     //   将这 n 个任务分为多个任务包，每个任务包有 stride 个任务
+    // 计算每个线程处理的数据区间大小 
     if ((stride =   ? (n >>> 3) / NCPU : n) < MIN_TRANSFER_STRIDE)
         stride = MIN_TRANSFER_STRIDE; // subdivide range
  
@@ -814,6 +822,10 @@ private final void transfer(Node<K,V>[] tab, Node<K,V>[] nextTab) {
                 i = nextIndex - 1;
                 advance = false;
             }
+         /*  假设数组长度是32 
+          *  第一次[16(nextBound),31(i)]
+          *  第二次[0,15]
+          */
         }
         if (i < 0 || i >= n || i + n >= nextn) {
             int sc;
@@ -989,3 +1001,74 @@ public V get(Object key) {
 
 简单说一句，此方法的大部分内容都很简单，只有正好碰到扩容的情况，ForwardingNode.find(int h, Object k) 稍微复杂一些，不过在了解了数据迁移的过程后，这个也就不难了，所以限于篇幅这里也不展开说了。
 
+### 8、统计元素个数
+
+第一种方式：使用baseCount +1， put一个 就进行+1；
+
+第二种方式：使用CounterCell 数组，随机的获取一个数组下标，然后cas进当前数组，这样的好处是减少竞争，最后统计所有数组的size进行累加 得到最终元素个数
+
+```java
+    /**
+     * Adds to count, and if table is too small and not already
+     * resizing, initiates transfer. If already resizing, helps
+     * perform transfer if work is available.  Rechecks occupancy
+     * after a transfer to see if another resize is already needed
+     * because resizings are lagging additions.
+     *
+     * @param x the count to add
+     * @param check if <0, don't check resize, if <= 1 only check if uncontended
+     */
+    private final void addCount(long x, int check) {
+        CounterCell[] as; long b, s;
+      //统计元素的个数
+        if ((as = counterCells) != null ||
+            !U.compareAndSwapLong(this, BASECOUNT, b = baseCount, s = b + x)) {
+            CounterCell a; long v; int m;
+            boolean uncontended = true;
+            if (as == null || (m = as.length - 1) < 0 ||
+                (a = as[ThreadLocalRandom.getProbe() & m]) == null ||
+                !(uncontended =
+                  U.compareAndSwapLong(a, CELLVALUE, v = a.value, v + x))) {
+                fullAddCount(x, uncontended);
+                return;
+            }
+            if (check <= 1)
+                return;
+            s = sumCount();
+        }
+      //是否要扩容
+        if (check >= 0) {
+            Node<K,V>[] tab, nt; int n, sc;
+            while (s >= (long)(sc = sizeCtl) && (tab = table) != null &&
+                   (n = tab.length) < MAXIMUM_CAPACITY) {
+                int rs = resizeStamp(n);
+                if (sc < 0) {
+                    if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 ||
+                        sc == rs + MAX_RESIZERS || (nt = nextTable) == null ||
+                        transferIndex <= 0)
+                        break;
+                    if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1))
+                        transfer(tab, nt);
+                }
+                else if (U.compareAndSwapInt(this, SIZECTL, sc,
+                                             (rs << RESIZE_STAMP_SHIFT) + 2))
+                    transfer(tab, null);
+                s = sumCount();
+            }
+        }
+    }
+```
+
+
+
+- 原理分析
+  - put方法添加元素，构建数据
+  - 解决Hash冲突的问题 -> 链式寻址
+  - 扩容-> 数据的扩容
+    - 数据迁移
+    - 多线程并发协助数据迁移
+    - 该地位迁移，需要迁移的数据放在高链位，不需要迁移的放在低链位，然后一次性吧高链位和低链位set到指定的数据下标位置
+  - 元素统计
+    - 数组的方式，分片的设计思想CounterCell
+    - 汇总数据+baseCount的值来完成数据累加
+  - 当链表长度大于等于8，并且数组长度大于64的时候，链表转化为红黑树
