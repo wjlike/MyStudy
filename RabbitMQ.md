@@ -2,6 +2,8 @@
 
  RabbitMQ 是一个开源的 AMQP 实现，服务器端用 Erlang 语言编写，支持多种客户端。用于在分布式系统中存储转发消息，在易用性、扩展性、高可用性等方面表现不俗 
 
+支持协议：AMQP、STOMP、MQTT、HTTP、WebSocket
+
 ### 2. RabbitMQ 安装运行
 
 #### 1. 安装依赖环境
@@ -437,14 +439,14 @@ public class Consumer {
 
 ``` RabbitMQ 常用交换器类型：fanout、direct、topic、headers 四种 ```
 
-#### fanout
+#### fanout 广播
 
 - fanout：扇形交换机
 - 它会把所有发送到该交换器的消息路由到所有与该交换器绑定的队列中。
 
 ![1629861198151](img\1629861198151.png)
 
-#### direct
+#### direct 直连
 
 - direct：直连交换机
 - 它会把消息路由到那些 BindingKey 和 RoutingKey 完全匹配的队列中
@@ -454,7 +456,16 @@ public class Consumer {
 #### topic
 
 - topic：主题交换机。
+
 - 与 direct 类似，但它可以通过通配符进行模糊匹配。
+
+  ```# 代表匹配一个或多个单词```
+
+  ``` * 代表匹配一个单词```
+
+  ``` 每个单词用.隔开```
+
+   
 
 ![1629861257254](img\1629861257254.png)
 
@@ -611,4 +622,57 @@ public class Consumer {
     }
 }
 ```
+
+### 9. 持久化与内存管理
+
+RabbitMQ 中会有一个内存阈值，当内存大小到达阈值的时候，防止系统崩坏，会停止接收客户端的消息，并抛出异常，
+
+此时可临时调整RabbitMQ的 参数
+
+**相对模式**
+
+``` rabbitmqctl set_vm_memory_high_watermark <fraction>```
+
+fraction为内存阈值，默认为0.4， 表示RabbitMQ使用的内存超过系统内存的40%时，会产生内存告警,通过此命令修改的阈值在重启后会失效。可以通过修改配置文件的方式，使之永久生效，但是需要重启服务
+
+
+
+**绝对模式**
+
+```rabbitmqctl set_vm_memory_high_watermark absolute <value>```
+
+absolute: 绝对值，固定大小，单位为KB、MB、GB
+
+
+
+#### 内存换页
+
+在RabbitMQ达到内存阈值并阻塞生产者之前，会尝试将内存中的消息换页到磁盘，以释放内存空间
+
+``` vm_memory_high_watermark_paging_ratio=0.5```
+
+当换页阈值大于1时，相当于禁用了换页功能
+
+#### 磁盘控制
+
+RabbitMQ 通过磁盘阈值参数控制磁盘的使用量，当磁盘剩余空间小于磁盘阈值时，RabbitMQ同样会阻塞生产者，避免磁盘空间耗尽
+
+```shell
+rabbitmqctl set_disk_free_limit <limit>
+rabbitmqctl set_disk_free_limit mem_relative <fraction>
+# limit为绝对值，KB，MB，GB
+# fraction 为相对值 建议1.0~2.0之间
+
+# rabbitmq.conf
+disk_free_limit.relative = 1.5
+#disk_free_limit.abslute=50MB
+```
+
+### 配置属性和描述
+
+| 属性 | 描述 | 默认值 |
+| ---- | ---- | ------ |
+|      |      |        |
+|      |      |        |
+|      |      |        |
 
