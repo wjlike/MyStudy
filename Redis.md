@@ -76,10 +76,11 @@
 
 ```sh
 `struct __attribute__ ((__packed__)) sdshdr8 { 8表示字符串最大长度是2^8-1 （长度为255）``
-uint8_t len;//表示当前sds的长度(单位是字节)`` uint8_t alloc; //表示已为sds分配的内存大小(单
-位是字节)`` unsigned char flags; //用一个字节表示当前sdshdr的类型，因为有sdshdr有五种类型，所
-以至少需要3位来表示000:sdshdr5，001:sdshdr8，010:sdshdr16，011:sdshdr32，100:sdshdr64。高5位
-用不到所以都为0。`` char buf[];//sds实际存放的位置``};`
+uint8_t len;//表示当前sds的长度(单位是字节)`` 
+uint8_t alloc; //表示已为sds分配的内存大小(单位是字节)`` 
+unsigned char flags; //用一个字节表示当前sdshdr的类型，因为有sdshdr有五种类型，所以至少需要3位来表示000:sdshdr5，001:sdshdr8，010:sdshdr16，011:sdshdr32，100:sdshdr64。高5位用不到所以都为0。`` 
+char buf[];//sds实际存放的位置``
+};`
 ```
 
  sdshdr8的内存布局 
@@ -138,7 +139,7 @@ typedef struct dictEntry {
 
 ```C
 typedef struct dictht {
-    dictEntry **table;//buckets的地址
+    dictEntry **table;//buckets的地址 dictEntry数组
     unsigned long size;//buckets的大小,总保持为 2^n
     unsigned long sizemask;//掩码，用来计算hash值对应的buckets索引
     unsigned long used;//当前dictht有多少个dictEntry节点
@@ -147,7 +148,7 @@ typedef struct dictht {
 
 **dict **
 
- dictht实际上就是hash表的核心，但是只有一个dictht还不够，比如rehash、遍历hash等操作，所以redis定义了 一个叫dict的结构以支持字典的各种操作，当dictht需要扩容/缩容时，用来管理dictht的迁移，以下是它的数据结 构,源码在 
+dictht实际上就是hash表的核心，但是只有一个dictht还不够，比如rehash、遍历hash等操作，所以redis定义了 一个叫dict的结构以支持字典的各种操作，当dictht需要扩容/缩容时，用来管理dictht的迁移，以下是它的数据结 构,源码在 
 
 ```C
 typedef struct dict {
@@ -186,7 +187,37 @@ typedef struct dict {
 
  zset类型的数据结构就比较复杂一点，内部是以ziplist或者skiplist+hashtable来实现，这里面最核心的一个结构就 是skiplist，也就是跳跃表 ![1630760205690](img/1630760205690.png)
 
+Redis 发生Hash冲突使用头插，而HashMap 使用尾插，因为头插在并发的情况下会形成死链，而redis 是单线程，不存在并发问题，也不会形成死链表
 
+头插的性能更高，尾插需要找到链表最后一个节点进行操作
+
+## Redis扩容
+
+如果不扩容的话，查询速度就接近链表的速度O(n)
+
+### 扩容机制
+
+- 当没有fork子进程在进行RDB或者AOF持久化（内存的数据保存到磁盘）时，ht[0]的used大于等于size时，触发扩容
+- 如果有子进程在进行RDB或者AOF时，ht[0]的used大于等于size的5倍的 时候，会触发扩容
+
+扩容不会有并发问题的，Redis里面会有一个迭代器的操作，来保证扩容期间不会有新的entry导致错乱
+
+### 扩容步骤
+
+- 当满足扩容条件，触发扩容时，判断是否在扩容，如果在扩容，或者 扩容的大小跟现在的ht[0].size一样，这次扩容不做。
+-  new一个新的dictht，大小为ht[0].used * 2（但是必须向上2的幂，比 如6 ，那么大小为8） ，并且ht[1]=新创建的dictht。
+- 如果有个更大的table了，但是需要把数据迁移到ht[1].table ，所以将 dict的rehashidx（数据迁移的偏移量）赋值为0 ，代表可以进行数据迁 移了，也就是可以rehash了。
+- 等待数据迁移完成，数据不会马上迁移，而是采用渐进式rehash，慢慢 的把数据迁移到ht[1]
+- 当数据迁移完成，ht[0].table=ht[1] ，ht[1] .table = NULL、ht[1] .size = 0、ht[1] .sizemask = 0、 ht[1] .used = 0;
+- 把dict的rehashidex=-1
+
+### 数据迁移方式（渐进式Rehash） 
+
+ 假如一次性把数据迁移会很耗时间，会让单条指令等待很久很久。会形成 阻塞 所以，Redis采用的是渐进式Rehash,所谓渐进式，就是慢慢的，不会一次 性把所有数据迁移。
+
+1.每次进行key的crud操作都会进行一个hash桶的数据迁移 
+
+2.定时任务，进行部分数据迁移
 
 ## Redis 淘汰策略
 

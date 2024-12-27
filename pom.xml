@@ -8,7 +8,8 @@
 		<module>testCode</module>
         <module>mq</module>
         <module>io</module>
-        <!--        <module>OCR</module>-->
+		<module>zookeeper</module>
+		<!--        <module>OCR</module>-->
     </modules>
     <parent>
 		<groupId>org.springframework.boot</groupId>
