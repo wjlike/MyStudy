@@ -16,17 +16,17 @@
 >   wget https://www.apache.org/dyn/closer.lua/zookeeper/zookeeper-3.7.1/apache-zookeeper3.7.1-bin.tar.gz
 >   # 解压
 >   tar -xvf apache-zookeeper-3.7.1-bin.tar.gz
->   
+>     
 >   cd apache-zookeeper-3.7.1-bin
->   
+>     
 >   # 设置zoo.cfg 文件
 >   cp zoo_sample.cfg zoo.cfg
->   
+>     
 >   zkServer.sh start # 启动
 >   zkServer.sh start-foreground # 前端启动
 >   zkServer.sh status # 查看状态
 >   zkServer.sh stop # 停止
->   
+>     
 >   ```
 
 > Docker 环境安装
@@ -230,3 +230,264 @@ addauth digest jack:123
 get /zk-jack
 ```
 
+## 基于Zookeeper实现注册中心
+
+1. 依据Spring事件监听机制扩展springboot 源码
+
+   ```java
+   public class ZKApplicationListener implements ApplicationListener<ContextRefreshedEvent>{
+       @Override
+       public void onApplicationEvent(ContextRefreshedEvent event){
+           System.out.println("事件监听机制的回调。。")
+       }
+   }
+   ```
+
+   > Spring SPI: MATA-INF/spring.factories
+   >
+   > org.springframework.context.ApplicationListener=com.jack.zkorderservice.initiali zer.ZKApplicationListener
+
+2.  定义服务注册接口和实现类
+
+   ```java
+   public interface ServiceRegistry{
+   	void register()
+   }
+   
+   public class ZookeeperServiceRegistry implements ServiceRegistry{
+       private CuratorFramework curatorFramework;
+       private final String ip;
+       private final String port;
+       private final String serviceName;
+       private final String basePath="/zk-registry";
+       @Override
+       public void register() {
+           String serviceNamePath=basePath+"/"+serviceName;
+           try {
+               if(curatorFramework.checkExists().forPath(serviceNamePath)==null) {
+                   this.curatorFramework.create().creatingParentsIfNeeded().withMode(CreateMode.PE
+                   RSISTENT).forPath(serviceNamePath);
+               }
+               String urlNode =
+                   curatorFramework.create().withMode(CreateMode.EPHEMERAL).forPath(serviceNamePath
+                   + "/" + ip +":"+ port);
+               System.out.println("服务 "+urlNode+" 注册成功...");
+           } catch (Exception e) {
+               e.printStackTrace();
+        }
+   
+       }
+       
+       public ZookeeperServiceRegistry(String serviceName, String ip, String port,String zkServer) {
+           this.serviceName=serviceName;
+           this.ip=ip;
+           this.port=port;
+           this.curatorFramework = CuratorFrameworkFactory
+                                       .builder()
+                                       .connectionTimeoutMs(20000)
+                                       .connectString(zkServer)
+                                       .retryPolicy(new ExponentialBackoffRetry(1000, 3))
+                                       .build();
+           curatorFramework.start();
+       }
+   
+   }
+   ```
+
+3. 构造函数初始化curatorFramework
+
+   1. 引入curator依赖
+
+      ```xml
+      <dependency>
+          <group>>org.apache.curator</group>
+          <artifactId>curator-recipes</artifactId>
+      	<version>5.2.1</version>
+      </dependency>
+      ```
+
+   2. 构造喊出初始化curator
+
+      ```java 
+      private CuratorFramework curatorFramework;
+      public ZookeeperServiceRegistry(String zkServer) {
+          this.curatorFramework = CuratorFrameworkFactory
+          .builder()
+          .connectionTimeoutMs(20000)
+          .connectString(zkServer)
+          .retryPolicy(new ExponentialBackoffRetry(1000, 3))
+          .build();
+          curatorFramework.start();
+      }
+      
+      ```
+
+      
+
+   3.  配置application.properties
+
+      ```properties
+      server.port=9091
+      zk.service-name=order-service
+      zk.server==192.168.0.8:2181
+      zk.ip=127.0.0.1
+      ```
+
+   4.  完善监听器回调逻辑
+
+      ```java
+      public class ZKApplicationListener implements
+      	ApplicationListener<ContextRefreshedEvent> {
+              @Override
+              public void onApplicationEvent(ContextRefreshedEvent event) {
+                  System.out.println("事件监听机制的回调...");
+                  // 获取app.properties配置属性
+                  Environment environment =
+                  event.getApplicationContext().getEnvironment();
+                  String serviceName = environment.getProperty("zk.service-name");
+                  String ip = environment.getProperty("zk.ip");
+                  String port = environment.getProperty("server.port");
+                  String zkServer = environment.getProperty("zk.server");
+                  // 服务注册
+                  ServiceRegistry zookeeperServiceRegistry = new ZookeeperServiceRegistry(serviceName,ip,port,zkServer);
+                  zookeeperServiceRegistry.register();
+              }
+      }
+      ```
+
+## 服务发现
+
+1. 定义服务发现接口和实现类
+
+   ```xml
+   <dependency>
+       <groupId>org.apache.curator</groupId>
+       <artifactId>curator-recipes</artifactId>
+       <version>5.2.1</version>
+   </dependency>
+   
+   ```
+
+   
+
+   ```java
+   public interface ServiceDiscover{
+       List<String> discover(String servicesName);
+       void regisyerWatch(String serviceName);
+   }
+   
+   
+   public class ServiceDiscoveryImpl implements ServiceDiscovery{
+       
+       private final CuratorFramework curatorFramework;
+       private final String basePath="/zk-registry";
+       public ServiceDiscoveryImpl(String zkServer) {
+           this.curatorFramework = CuratorFrameworkFactory
+                                       .builder()
+                                       .connectionTimeoutMs(20000)
+                                       .connectString(zkServer)
+                                       .retryPolicy(new ExponentialBackoffRetry(1000, 3))
+                                       .build();
+           curatorFramework.start();
+       }
+   
+       
+       @Override
+       public List<String> discovery(String serviceName) {
+           String serviceNamePath=basePath + "/" + serviceName;
+           try {
+               if (this.curatorFramework.checkExists().forPath(serviceNamePath)!=null){
+              	 return this.curatorFramework.getChildren().forPath(serviceNamePath);
+               }
+           }catch (Exception e){
+           	e.printStackTrace();
+           }
+       	return null;
+       }
+       @Override
+       public void registerWatch(String serviceNamePath) {
+           // 永久的监听
+           CuratorCache curatorCache = CuratorCache.build(curatorFramework,serviceNamePath);
+   		CuratorCacheListener listener =
+             	  CuratorCacheListener.builder().forPathChildrenCache(serviceNamePath,
+           	  curatorFramework, new PathChildrenCacheListener() {
+                                           @Override
+                                           public void childEvent(CuratorFramework client, PathChildrenCacheEvent
+                                           event) throws Exception {
+                                           System.out.println("最新的urls为:"+curatorFramework.getChildren().forPath(serviceNamePath));
+                                           }
+           }).build();
+           curatorCache.listenable().addListener(listener);
+           curatorCache.start();
+       }
+   }
+   
+   ```
+
+   ```java
+   @Configuration
+   public class ZookeeperDiscoveryAutoConfiguration {
+       @Resource
+       private Environment environment;
+       @Bean
+       public ServiceDiscoveryImpl serviceDiscovery(){
+       	return new ServiceDiscoveryImpl(environment.getProperty("zk.server"));
+       }
+   }
+   ```
+
+   > spring SPI
+   >
+   > org.springframework.boot.autoconfigure.EnableAutoConfiguration=com.jack.zkuserse rvice.config.ZookeeperDiscoveryAutoConfiguration
+
+2.  定义配置信息
+
+   ```properties
+   server.port=6666
+   zk.server=192.168.0.8:2181
+   ```
+
+3.  负载均衡
+
+   ```java
+   public interface LoadBalance {
+       sting select()
+   }
+   
+   public class RandomLoadBalance implements LoadBalance{
+       @Override
+       public String select(List<String> urls){
+           int len = urls.size;
+           Random random = new Random();
+           return urls.get(random.nextInt(len));
+       }
+   }
+   ```
+
+   
+
+4.  test
+
+   ```java
+   @SpringBootTest
+   public class ServiceDiscoveryTest{
+       @Resource
+       private ServiceDiscovery serviceDiscovery;
+       
+       private List<String> urls;
+       
+       public void discovery() throws IOException {
+           urls = this.serviceDiscovery.discovery("test-service");
+           LoadBalance loadBalance = new RandomLoadBalance();
+           String url = loadBalance.select(urls);
+           System.out.println("目标url为: "+url);
+   		String response = new RestTemplate().getForObject("http://" + url +"/order/query", String.class);
+           System.out.println("response: "+response);
+           // 添加对节点order-service的监听
+           this.serviceDiscovery.registerWatch("/jack-registry/orderservice",urls);
+   		System.in.read();
+       }
+   }
+   ```
+
+5. 
